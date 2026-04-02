@@ -22,5 +22,8 @@ create policy "matches_insert_anon" on public.matches
 create policy "matches_delete_anon" on public.matches
   for delete to anon using (true);
 
+create policy "matches_update_anon" on public.matches
+  for update to anon using (true) with check (true);
+
 -- Realtime: so other devices see new matches without refresh
 alter publication supabase_realtime add table public.matches;

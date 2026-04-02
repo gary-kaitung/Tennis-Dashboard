@@ -674,7 +674,7 @@
           .update({ match_date, match_time, note, player_name })
           .eq("id", editingMatchId)
           .select("id, match_date, match_time, note, player_name")
-          .single();
+          .maybeSingle();
         data = result.data;
         error = result.error;
       } else {
@@ -691,6 +691,11 @@
 
       if (error) {
         formStatus.textContent = error.message;
+        return;
+      }
+
+      if (!data) {
+        formStatus.textContent = "Could not update match. In Supabase, add an UPDATE policy for anon on the matches table.";
         return;
       }
 
