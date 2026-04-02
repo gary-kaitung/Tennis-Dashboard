@@ -252,6 +252,33 @@
       cursor: not-allowed;
     }
 
+    button.edit {
+      flex-shrink: 0;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    button.edit:hover:not(:disabled) {
+      background: rgba(62, 207, 142, 0.12);
+    }
+
+    button.edit:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .match-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
     .toolbar {
       display: flex;
       align-items: center;
@@ -352,6 +379,7 @@
           <textarea id="note" name="note" placeholder="Court, opponent, doubles…"></textarea>
         </div>
         <button type="submit" id="submit-btn">Add to dashboard</button>
+        <button type="button" class="ghost" id="cancel-edit-btn" hidden>Cancel edit</button>
         <p class="status" id="form-status" aria-live="polite"></p>
       </form>
     </section>
@@ -386,6 +414,7 @@
     const filterDate = document.getElementById("filter-date");
     const refreshBtn = document.getElementById("refresh-btn");
     const liveStatus = document.getElementById("live-status");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
 
     const PLAYER_KEY = "tennis-dashboard-player-name";
 
@@ -427,6 +456,7 @@
     }
 
     let matchesCache = [];
+    let editingMatchId = null;
 
     function rowToMatch(row) {
       return {
@@ -476,6 +506,29 @@
       return div.innerHTML;
     }
 
+    function resetFormToCreateMode() {
+      editingMatchId = null;
+      submitBtn.textContent = "Add to dashboard";
+      cancelEditBtn.hidden = true;
+      formStatus.textContent = "";
+      document.getElementById("note").value = "";
+    }
+
+    function startEdit(matchId) {
+      const match = matchesCache.find((m) => m.id === matchId);
+      if (!match) return;
+      editingMatchId = match.id;
+      document.getElementById("player_name").value = match.player_name || "";
+      document.getElementById("date").value = match.date || "";
+      document.getElementById("time").value = match.time || "";
+      document.getElementById("note").value = match.note || "";
+      filterDate.value = match.date || "";
+      submitBtn.textContent = "Save changes";
+      cancelEditBtn.hidden = false;
+      formStatus.textContent = "Editing selected match.";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function render() {
       const list = [...matchesCache].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
 
@@ -522,16 +575,29 @@
               '<div class="match-by">Added by ' + escapeHtml(m.player_name.trim()) + "</div>";
           }
           html += "</div>";
+          html += '<div class="match-actions">';
+          html +=
+            '<button type="button" class="edit" data-id="' +
+            escapeHtml(m.id) +
+            '" aria-label="Edit match">Edit</button>';
           html +=
             '<button type="button" class="delete" data-id="' +
             escapeHtml(m.id) +
             '" aria-label="Remove match">Remove</button>';
+          html += "</div>";
           html += "</li>";
         }
         html += "</ul></div>";
       }
 
       dashboard.innerHTML = html;
+
+      dashboard.querySelectorAll("button.edit").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          startEdit(id);
+        });
+      });
 
       dashboard.querySelectorAll("button.delete").forEach((btn) => {
         btn.addEventListener("click", async () => {
@@ -544,6 +610,9 @@
             return;
           }
           matchesCache = matchesCache.filter((x) => x.id !== id);
+          if (editingMatchId === id) {
+            resetFormToCreateMode();
+          }
           render();
         });
       });
@@ -597,11 +666,26 @@
       localStorage.setItem(PLAYER_KEY, player_name);
       submitBtn.disabled = true;
 
-      const { data, error } = await supabase
-        .from("matches")
-        .insert({ match_date, match_time, note, player_name })
-        .select("id, match_date, match_time, note, player_name")
-        .single();
+      let data;
+      let error;
+      if (editingMatchId) {
+        const result = await supabase
+          .from("matches")
+          .update({ match_date, match_time, note, player_name })
+          .eq("id", editingMatchId)
+          .select("id, match_date, match_time, note, player_name")
+          .single();
+        data = result.data;
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from("matches")
+          .insert({ match_date, match_time, note, player_name })
+          .select("id, match_date, match_time, note, player_name")
+          .single();
+        data = result.data;
+        error = result.error;
+      }
 
       submitBtn.disabled = false;
 
@@ -610,14 +694,22 @@
         return;
       }
 
-      document.getElementById("note").value = "";
       filterDate.value = match_date;
-      matchesCache.push(rowToMatch(data));
+      if (editingMatchId) {
+        matchesCache = matchesCache.map((m) => (m.id === editingMatchId ? rowToMatch(data) : m));
+        resetFormToCreateMode();
+      } else {
+        document.getElementById("note").value = "";
+        matchesCache.push(rowToMatch(data));
+      }
       render();
     });
 
     filterDate.addEventListener("change", render);
     refreshBtn.addEventListener("click", () => loadMatches());
+    cancelEditBtn.addEventListener("click", () => {
+      resetFormToCreateMode();
+    });
 
       const todayIso = new Date().toISOString().slice(0, 10);
       document.getElementById("date").value = todayIso;
