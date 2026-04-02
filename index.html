@@ -123,6 +123,12 @@
       resize: vertical;
     }
 
+    .field-help {
+      margin: 0.4rem 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
     button[type="submit"] {
       justify-self: start;
       padding: 0.7rem 1.35rem;
@@ -335,8 +341,9 @@
             <input type="date" id="date" name="date" required />
           </div>
           <div>
-            <label for="time">Time</label>
-            <input type="time" id="time" name="time" required />
+            <label for="time">Time (HH:MM)</label>
+            <input type="time" id="time" name="time" required step="900" title="Use 24-hour format HH:MM (example: 18:30)" aria-describedby="time-help" />
+            <p id="time-help" class="field-help">Use 24-hour format, for example 09:30 or 18:30. 15-minute steps.</p>
           </div>
         </div>
         <div>
