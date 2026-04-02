@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tennis match dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a222c;
+      --border: #2d3845;
+      --text: #e8eef4;
+      --muted: #8b9aad;
+      --accent: #3ecf8e;
+      --accent-dim: #2a9d62;
+      --danger: #f07178;
+      --warn: #e7c547;
+      --radius: 12px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    header {
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.35rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin: 0 0 1rem;
+    }
+
+    form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .row {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 480px) {
+      .row.two {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.2);
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    button[type="submit"] {
+      justify-self: start;
+      padding: 0.7rem 1.35rem;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+      color: #041208;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover:not(:disabled) {
+      filter: brightness(1.08);
+    }
+
+    button[type="submit"]:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .day-block {
+      margin-bottom: 1.75rem;
+    }
+
+    .day-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .day-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0 0 0.65rem;
+      color: var(--text);
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .day-label .sub {
+      font-weight: 400;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    ul.matches {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    li.match {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+
+    li.match:last-child {
+      margin-bottom: 0;
+    }
+
+    .match-time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 4.5rem;
+    }
+
+    .match-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .match-note {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      word-break: break-word;
+    }
+
+    .match-by {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      font-style: italic;
+    }
+
+    button.delete {
+      flex-shrink: 0;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--danger);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    button.delete:hover:not(:disabled) {
+      background: rgba(240, 113, 120, 0.12);
+    }
+
+    button.delete:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-wrap label {
+      display: inline;
+      margin-right: 0.5rem;
+    }
+
+    .filter-wrap input[type="date"] {
+      width: auto;
+      max-width: 100%;
+    }
+
+    button.ghost {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    button.ghost:hover {
+      background: var(--bg);
+    }
+
+    .status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    .status.live {
+      color: var(--accent);
+    }
+
+    .banner {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.5rem;
+      background: rgba(231, 197, 71, 0.08);
+      border-color: rgba(231, 197, 71, 0.35);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .banner code {
+      font-size: 0.82rem;
+      background: var(--bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .banner.error {
+      background: rgba(240, 113, 120, 0.1);
+      border-color: rgba(240, 113, 120, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Tennis matches</h1>
+      <p>Everyone sees the same schedule. Add your name so others know who booked the slot.</p>
+    </header>
+
+    <div id="setup-banner" class="banner" hidden></div>
+
+    <section class="card" aria-labelledby="add-heading">
+      <h2 id="add-heading">Add match</h2>
+      <form id="match-form">
+        <div>
+          <label for="player_name">Your name</label>
+          <input type="text" id="player_name" name="player_name" required maxlength="80" autocomplete="name" placeholder="Alex" />
+        </div>
+        <div class="row two">
+          <div>
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required />
+          </div>
+          <div>
+            <label for="time">Time</label>
+            <input type="time" id="time" name="time" required />
+          </div>
+        </div>
+        <div>
+          <label for="note">Notes (optional)</label>
+          <textarea id="note" name="note" placeholder="Court, opponent, doubles…"></textarea>
+        </div>
+        <button type="submit" id="submit-btn">Add to dashboard</button>
+        <p class="status" id="form-status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="dash-heading">
+      <div class="toolbar">
+        <h2 id="dash-heading" style="margin: 0;">Dashboard</h2>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="button" class="ghost" id="refresh-btn">Refresh</button>
+          <div class="filter-wrap">
+            <label for="filter-date">Jump to date</label>
+            <input type="date" id="filter-date" />
+          </div>
+        </div>
+      </div>
+      <p class="status live" id="live-status" hidden>Live updates on</p>
+      <div id="dashboard" role="region" aria-live="polite">
+        <p class="empty">Loading matches…</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="config.js"></script>
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const setupBanner = document.getElementById("setup-banner");
+    const form = document.getElementById("match-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const formStatus = document.getElementById("form-status");
+    const dashboard = document.getElementById("dashboard");
+    const filterDate = document.getElementById("filter-date");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const liveStatus = document.getElementById("live-status");
+
+    const PLAYER_KEY = "tennis-dashboard-player-name";
+
+    function configOk() {
+      const url = window.SUPABASE_URL;
+      const key = window.SUPABASE_ANON_KEY;
+      return (
+        typeof url === "string" &&
+        url.startsWith("https://") &&
+        !url.includes("YOUR_PROJECT_REF") &&
+        typeof key === "string" &&
+        key.length > 20 &&
+        !key.includes("YOUR_ANON")
+      );
+    }
+
+    async function main() {
+      const url = window.SUPABASE_URL;
+      const key = window.SUPABASE_ANON_KEY;
+
+      if (!configOk()) {
+        setupBanner.hidden = false;
+        setupBanner.classList.add("error");
+        setupBanner.innerHTML =
+          "<strong>Configure Supabase.</strong> Copy <code>config.example.js</code> to <code>config.js</code> and paste your Project URL and anon public key from the Supabase dashboard. Then run the SQL in <code>supabase-schema.sql</code>.";
+        dashboard.innerHTML =
+          '<p class="empty">Fix configuration above, then reload.</p>';
+        form.querySelectorAll("input, textarea, button").forEach((el) => {
+          el.disabled = true;
+        });
+        return;
+      }
+
+      const supabase = createClient(url, key);
+
+    const storedName = localStorage.getItem(PLAYER_KEY);
+    if (storedName) {
+      document.getElementById("player_name").value = storedName;
+    }
+
+    let matchesCache = [];
+
+    function rowToMatch(row) {
+      return {
+        id: row.id,
+        date: row.match_date,
+        time: row.match_time,
+        note: row.note || "",
+        player_name: row.player_name || "",
+      };
+    }
+
+    function sortKey(m) {
+      return m.date + "T" + (m.time || "00:00") + ":00";
+    }
+
+    function formatDayLabel(isoDate) {
+      const d = new Date(isoDate + "T12:00:00");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const cmp = new Date(d);
+      cmp.setHours(0, 0, 0, 0);
+      const diff = (cmp - today) / 86400000;
+      let rel = "";
+      if (diff === 0) rel = "Today";
+      else if (diff === 1) rel = "Tomorrow";
+      else if (diff === -1) rel = "Yesterday";
+      const long = d.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      return { rel, long };
+    }
+
+    function formatTime(t) {
+      if (!t) return "—";
+      const [h, min] = t.split(":");
+      const d = new Date();
+      d.setHours(parseInt(h, 10), parseInt(min, 10), 0, 0);
+      return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function render() {
+      const list = [...matchesCache].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+
+      if (list.length === 0) {
+        dashboard.innerHTML = '<p class="empty">No matches yet. Add one above.</p>';
+        return;
+      }
+
+      const byDate = new Map();
+      for (const m of list) {
+        if (!byDate.has(m.date)) byDate.set(m.date, []);
+        byDate.get(m.date).push(m);
+      }
+
+      const dates = [...byDate.keys()].sort();
+      const filter = filterDate.value;
+      const datesToShow = filter ? dates.filter((d) => d === filter) : dates;
+
+      if (filter && datesToShow.length === 0) {
+        dashboard.innerHTML =
+          '<p class="empty">No matches on that date. Clear the date filter to see all.</p>';
+        return;
+      }
+
+      let html = "";
+      for (const date of datesToShow) {
+        const { rel, long } = formatDayLabel(date);
+        const dayMatches = byDate.get(date).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+        html += '<div class="day-block" data-date="' + escapeHtml(date) + '">';
+        html += '<p class="day-label">';
+        if (rel) html += "<span>" + escapeHtml(rel) + "</span>";
+        html += '<span class="sub">' + escapeHtml(long) + "</span></p>";
+        html += '<ul class="matches">';
+        for (const m of dayMatches) {
+          const timeStr = formatTime(m.time);
+          html += '<li class="match" data-id="' + escapeHtml(m.id) + '">';
+          html += '<span class="match-time">' + escapeHtml(timeStr) + "</span>";
+          html += '<div class="match-body">';
+          if (m.note && m.note.trim()) {
+            html += '<div class="match-note">' + escapeHtml(m.note.trim()) + "</div>";
+          }
+          if (m.player_name && m.player_name.trim()) {
+            html +=
+              '<div class="match-by">Added by ' + escapeHtml(m.player_name.trim()) + "</div>";
+          }
+          html += "</div>";
+          html +=
+            '<button type="button" class="delete" data-id="' +
+            escapeHtml(m.id) +
+            '" aria-label="Remove match">Remove</button>';
+          html += "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      dashboard.innerHTML = html;
+
+      dashboard.querySelectorAll("button.delete").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          btn.disabled = true;
+          const { error } = await supabase.from("matches").delete().eq("id", id);
+          if (error) {
+            formStatus.textContent = error.message;
+            btn.disabled = false;
+            return;
+          }
+          matchesCache = matchesCache.filter((x) => x.id !== id);
+          render();
+        });
+      });
+    }
+
+    async function loadMatches() {
+      const { data, error } = await supabase
+        .from("matches")
+        .select("id, match_date, match_time, note, player_name")
+        .order("match_date", { ascending: true })
+        .order("match_time", { ascending: true });
+
+      if (error) {
+        dashboard.innerHTML =
+          '<p class="empty">Could not load matches: ' + escapeHtml(error.message) + "</p>";
+        return false;
+      }
+      matchesCache = (data || []).map(rowToMatch);
+      render();
+      return true;
+    }
+
+    supabase
+      .channel("matches-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "matches" },
+        () => {
+          loadMatches();
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          liveStatus.hidden = false;
+        }
+      });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      formStatus.textContent = "";
+      const player_name = document.getElementById("player_name").value.trim();
+      const match_date = document.getElementById("date").value;
+      const match_time = document.getElementById("time").value;
+      const note = document.getElementById("note").value.trim();
+
+      if (!player_name) {
+        formStatus.textContent = "Enter your name.";
+        return;
+      }
+
+      localStorage.setItem(PLAYER_KEY, player_name);
+      submitBtn.disabled = true;
+
+      const { data, error } = await supabase
+        .from("matches")
+        .insert({ match_date, match_time, note, player_name })
+        .select("id, match_date, match_time, note, player_name")
+        .single();
+
+      submitBtn.disabled = false;
+
+      if (error) {
+        formStatus.textContent = error.message;
+        return;
+      }
+
+      document.getElementById("note").value = "";
+      filterDate.value = match_date;
+      matchesCache.push(rowToMatch(data));
+      render();
+    });
+
+    filterDate.addEventListener("change", render);
+    refreshBtn.addEventListener("click", () => loadMatches());
+
+      const todayIso = new Date().toISOString().slice(0, 10);
+      document.getElementById("date").value = todayIso;
+
+      await loadMatches();
+    }
+
+    main();
+  </script>
+</body>
+</html>
